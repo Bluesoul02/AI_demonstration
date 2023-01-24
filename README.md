@@ -4,7 +4,7 @@ Demonstration of steering behavior implementation done on Unreal Engine 5.0.3
 
 # Instructions
 
--Remember to regenerate visual studio files on clone
+- Remember to regenerate visual studio files on clone
 - The sliders in the bottom left affects their respective stats which can also be changed by clicking on the number and editing the text (only integers are accepted)
 - Left click to move the player pawn which is the target for the following mode : Seek, Flee, Pursuit, Evade, Arrival
 - Left click to move waypoint in the following modes : Circuit, Two Ways and one way
