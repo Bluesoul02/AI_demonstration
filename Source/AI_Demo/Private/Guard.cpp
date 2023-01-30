@@ -27,6 +27,7 @@ void AGuard::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)) {
 		FString CurrentMode = GameInstance->GetCurrentMode();
+		//Velocity.Z = target.Z;
 		target.Z = GetActorLocation().Z; //ignore Z axis by setting at the same value as guard
 
 		if (CurrentMode == FString("Seek")) {
@@ -80,7 +81,17 @@ void AGuard::Tick(float DeltaTime)
 			Circuit();
 		}
 
-		this->SetActorRotation(FRotationMatrix::MakeFromX(Velocity).Rotator());
+		// obstacle avoidance
+		FVector ahead = GetActorLocation() + Velocity.GetSafeNormal() * 5;
+		//FVector avoidance_ahead = ahead - obstacle_center;
+		//FVector avoidance_force = avoidance_ahead.GetSafeNormal() * AVOID_FORCE;
+
+		//this->SetActorRotation(FRotationMatrix::MakeFromX(Velocity).Rotator());
+		//float TimeToSet = DeltaTime;
+		//FRotator TargetRotation = Velocity.Rotation();
+		//TargetRotation.Pitch = FMath::Clamp(FMath::Lerp(TargetRotation.Pitch, Velocity.Rotation().Pitch, TimeToSet), 0.0f, 280.0f);
+
+		this->SetActorRotation(Velocity.Rotation());
 
 		//FVector new_forward = Velocity.GetSafeNormal();
 		//FVector approximate_up = GetActorRotation().Vector();
@@ -94,10 +105,9 @@ void AGuard::Tick(float DeltaTime)
 
 void AGuard::Seek() {
 	FVector desired_velocity = (target - GetActorLocation());
-	desired_velocity.GetSafeNormal();
-	desired_velocity = desired_velocity * GameInstance->GetMaxSpeed();
+	desired_velocity = desired_velocity.GetSafeNormal() * GameInstance->GetMaxSpeed();
 	FVector steering = desired_velocity - Velocity;
-	SteeringForce = steering * GameInstance->GetMaxForce() / steering.Length();
+	SteeringForce = steering.GetClampedToMaxSize(GameInstance->GetMaxForce());
 	Acceleration = SteeringForce / GameInstance->GetMass();
 	Velocity = (Velocity + Acceleration).GetClampedToMaxSize(GameInstance->GetMaxSpeed());
 	Position = GetActorLocation() + Velocity;
@@ -107,8 +117,7 @@ void AGuard::Seek() {
 
 void AGuard::Flee() {
 	FVector desired_velocity = (GetActorLocation() - target);
-	desired_velocity.GetSafeNormal();
-	desired_velocity = desired_velocity * GameInstance->GetMaxSpeed();
+	desired_velocity = desired_velocity.GetSafeNormal() * GameInstance->GetMaxSpeed();
 	FVector steering = desired_velocity - Velocity;
 	SteeringForce = steering.GetClampedToMaxSize(GameInstance->GetMaxForce());
 	Acceleration = SteeringForce / GameInstance->GetMass();
@@ -142,7 +151,6 @@ void AGuard::Arrival() {
 	double ramped_speed = GameInstance->GetMaxSpeed() * (distance / GameInstance->GetSlowingDistance());
 	double clipped_speed = FMath::Min(ramped_speed, GameInstance->GetMaxSpeed());
 	FVector desired_velocity = (clipped_speed / distance) * target_offset;
-	desired_velocity.GetSafeNormal();
 
 	FVector steering = desired_velocity - Velocity;
 	SteeringForce = steering.GetClampedToMaxSize(GameInstance->GetMaxForce());
@@ -168,7 +176,7 @@ void AGuard::OneWay() {
 }
 
 void AGuard::TwoWays() {
-	if (target.Equals(GetActorLocation(), 1.0f))
+	if (target.Equals(GetActorLocation(), 5.0f))
 		twoWays = !twoWays;
 
 	TArray<AActor*> ActorsToFind;
@@ -198,7 +206,7 @@ void AGuard::Circuit() {
 		UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), AWaypoint::StaticClass(), FName("Circuit"), ActorsToFind);
 	}
 
-	if (target.Equals(GetActorLocation(), 1.0f)) {
+	if (target.Equals(GetActorLocation(), 5.0f)) {
 		Cast<AWaypoint>(ActorsToFind[CurrentWaypoint])->SetIsTarget(false);
 		CurrentWaypoint++;
 	}

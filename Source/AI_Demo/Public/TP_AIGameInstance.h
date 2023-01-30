@@ -25,7 +25,7 @@ class AI_DEMO_API UTP_AIGameInstance : public UGameInstance
 			double MaxForce = 3;
 
 		UPROPERTY(BlueprintGetter = GetSlowingDistance, BlueprintSetter = SetSlowingDistance)
-			double SlowingDistance = 35;
+			double SlowingDistance = 350;
 
 		UPROPERTY(BlueprintGetter = GetMass, BlueprintSetter = SetMass)
 			double Mass = 9;
