@@ -27,6 +27,8 @@ protected:
 	FVector target;
 	bool twoWays = false;
 	int CurrentWaypoint = 0;
+	int CurrentWaypointOneWay = 0;
+	int CurrentWaypointTwoWays = 0;
 	// Called when the game starts or when spawned
 	void BeginPlay() override;
 

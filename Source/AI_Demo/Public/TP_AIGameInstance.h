@@ -32,6 +32,12 @@ class AI_DEMO_API UTP_AIGameInstance : public UGameInstance
 
 		UPROPERTY(BlueprintGetter = GetWaypoints, BlueprintSetter = SetWaypoints)
 			int Waypoints = 0;
+
+		UPROPERTY(BlueprintGetter = GetWaypointsOneWay, BlueprintSetter = SetWaypointsOneWay)
+			int WaypointsOneWay = 0;
+
+		UPROPERTY(BlueprintGetter = GetWaypointsTwoWays, BlueprintSetter = SetWaypointsTwoWays)
+			int WaypointsTwoWays = 0;
 	public:
 		UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)
 			FString GetCurrentMode() const { return CurrentMode; }
@@ -68,4 +74,16 @@ class AI_DEMO_API UTP_AIGameInstance : public UGameInstance
 
 		UFUNCTION(BlueprintCallable, BlueprintInternalUseOnly)
 			void SetMass(const double new_mass) { Mass = new_mass; }
+
+		UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)
+			int GetWaypointsOneWay() const { return WaypointsOneWay; }
+
+		UFUNCTION(BlueprintCallable, BlueprintInternalUseOnly)
+			void SetWaypointsOneWay(const int waypoints_count) { WaypointsOneWay = waypoints_count; }
+
+		UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)
+			int GetWaypointsTwoWays() const { return WaypointsTwoWays; }
+
+		UFUNCTION(BlueprintCallable, BlueprintInternalUseOnly)
+			void SetWaypointsTwoWays(const int waypoints_count) { WaypointsTwoWays = waypoints_count; }
 };
