@@ -75,14 +75,14 @@ void AGuard::Tick(float DeltaTime)
 			Arrival();
 		}
 
-		else if (CurrentMode == FString("One Way")) {
+		else if (CurrentMode == FString("OneWay")) {
 			CurrentWaypointTwoWays = 0;
 			CurrentWaypoint = 0;
 			twoWays = false;
 			OneWay();
 		}
 
-		else if (CurrentMode == FString("Two Ways")) {
+		else if (CurrentMode == FString("TwoWays")) {
 			CurrentWaypointOneWay = 0;
 			CurrentWaypoint = 0;
 			TwoWays();
@@ -181,8 +181,10 @@ void AGuard::OneWay() {
 	{
 		UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), AWaypoint::StaticClass(), FName("OneWay"), ActorsToFind);
 	}
-
-	if (target.Equals(GetActorLocation(), 5.0f)) {
+	if (CurrentWaypointOneWay == GameInstance->GetWaypointsOneWay()) {
+		// do nothing
+	}
+	else if (target.Equals(GetActorLocation(), 5.0f)) {
 		Cast<AWaypoint>(ActorsToFind[CurrentWaypointOneWay])->SetIsTarget(false);
 		CurrentWaypointOneWay++;
 	}
@@ -193,33 +195,46 @@ void AGuard::OneWay() {
 
 	Cast<AWaypoint>(ActorsToFind[CurrentWaypointOneWay])->SetIsTarget(true);
 	target = ActorsToFind[CurrentWaypointOneWay]->GetActorLocation();
-	if (GameInstance->GetWaypointsOneWay() == CurrentWaypointOneWay || 0 == CurrentWaypointOneWay)
+	if (GameInstance->GetWaypointsOneWay() == CurrentWaypointOneWay)
 		Arrival();
 	else
 		Seek();
 }
 
 void AGuard::TwoWays() {
-	if (target.Equals(GetActorLocation(), 5.0f))
-		twoWays = !twoWays;
 
 	TArray<AActor*> ActorsToFind;
 	if (UWorld* World = GetWorld())
 	{
 		UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), AWaypoint::StaticClass(), FName("TwoWays"), ActorsToFind);
 	}
-	if (!twoWays) {
-		Cast<AWaypoint>(ActorsToFind[1])->SetIsTarget(false);
-		target = ActorsToFind[0]->GetActorLocation();
-		Cast<AWaypoint>(ActorsToFind[0])->SetIsTarget(true);
+
+	if (target.Equals(GetActorLocation(), 5.0f)) {
+		Cast<AWaypoint>(ActorsToFind[CurrentWaypointTwoWays])->SetIsTarget(false);
+		if (!twoWays)
+			CurrentWaypointTwoWays++;
+		else
+			CurrentWaypointTwoWays--;
+	}
+	if (CurrentWaypointTwoWays < 0) {
+		twoWays = !twoWays;
+		CurrentWaypointTwoWays++;
+	}
+	else if (GameInstance->GetWaypointsTwoWays() < CurrentWaypointTwoWays){
+		twoWays = !twoWays;
+		CurrentWaypointTwoWays--;
 	}
 	else {
-		Cast<AWaypoint>(ActorsToFind[0])->SetIsTarget(false);
-		target = ActorsToFind[1]->GetActorLocation();
-		Cast<AWaypoint>(ActorsToFind[1])->SetIsTarget(true);
-
+		Cast<AWaypoint>(ActorsToFind[CurrentWaypointTwoWays])->SetIsTarget(false);
 	}
-	Seek();
+
+	Cast<AWaypoint>(ActorsToFind[CurrentWaypointTwoWays])->SetIsTarget(true);
+	target = ActorsToFind[CurrentWaypointTwoWays]->GetActorLocation();
+
+	if (CurrentWaypointTwoWays == 0 || GameInstance->GetWaypointsTwoWays() == CurrentWaypointTwoWays)
+		Arrival();
+	else
+		Seek();
 }
 
 void AGuard::Circuit() {

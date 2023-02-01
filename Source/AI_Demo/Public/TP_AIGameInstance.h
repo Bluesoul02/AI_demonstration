@@ -37,7 +37,7 @@ class AI_DEMO_API UTP_AIGameInstance : public UGameInstance
 			int WaypointsOneWay = 0;
 
 		UPROPERTY(BlueprintGetter = GetWaypointsTwoWays, BlueprintSetter = SetWaypointsTwoWays)
-			int WaypointsTwoWays = 0;
+			int WaypointsTwoWays = 1;
 	public:
 		UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)
 			FString GetCurrentMode() const { return CurrentMode; }
