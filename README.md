@@ -7,11 +7,13 @@ Demonstration of steering behavior implementation done on Unreal Engine 5.0.3
 - Remember to regenerate visual studio files on clone
 - The sliders in the bottom left affects their respective stats which can also be changed by clicking on the number and editing the text (only integers are accepted)
 - Left click to move the player pawn which is the target for the following mode : Seek, Flee, Pursuit, Evade, Arrival
+- Switch between spawning new waypoints and moving existing ones by clicking on the button "change to xxx mode"
 - Left click to move waypoint in the following modes : Circuit, Two Ways and one way
-- Add more waypoint to Circuit, One Way or Two Ways by clicking on +1 while in corresponding mode, the new waypoint will spawn under the AI
+- Left click to spawn waypoint in the following modes : Circuit, Two Ways and one way
 - For the following modes : One Way, Two ways and Circuit
   - The waypoint that will be moved is indicated by a green cone
   - The waypoint targetted by the AI is in red
+- Each mode has its own waypoints
 
   # Behavior descriptions
 
