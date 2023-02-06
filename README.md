@@ -15,6 +15,18 @@ Demonstration of steering behavior implementation done on Unreal Engine 5.0.3
   - The waypoint targetted by the AI is in red
 - Each mode has its own waypoints
 
+# Path finding Description
+
+pathing is on the right side of the map and has its own waypoints which can't be moved during gameplay.
+
+- One point: the user chooses a target point in the environment. The character then finds
+its way trough the maze in order to reach the target point and then stops.
+- Several points: the user chooses several points in the environment. The character then
+finds its way to reach the first point, then the second point, and so on, and then stops.
+- Circuit: the user chooses several points in the environment. The character then finds its
+way trough the maze in order to reach the first point, then the second point, and so on,
+and then the character returns to the original point and stops.
+
   # Behavior descriptions
 
 - Seek: the character moves in order to reach a fixed target.
