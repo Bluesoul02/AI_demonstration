@@ -143,7 +143,7 @@ void AGuard::Flee() {
 void AGuard::Pursuit() {
 	FVector TargetVelocity = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)->GetVelocity();
 	float dist = FVector::Dist(target, GetActorLocation());
-	FVector prediction = target + (TargetVelocity * dist);
+	FVector prediction = target + (TargetVelocity.GetSafeNormal() * dist);
 	//FVector direction = target - GetActorLocation());
 	//direction.Normalize(1.0);
 	//if (FVector::DotProduct(this->GetActorForwardVector(), direction) >= 0.5)
@@ -154,7 +154,7 @@ void AGuard::Pursuit() {
 void AGuard::Evade() {
 	FVector TargetVelocity = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0)->GetVelocity();
 	float dist = FVector::Dist(target, GetActorLocation());
-	FVector prediction = target + (TargetVelocity * dist);
+	FVector prediction = target + (TargetVelocity.GetSafeNormal() * dist);
 	target = prediction;
 	Flee();
 }
