@@ -27,7 +27,7 @@ finds its way to reach the first point, then the second point, and so on, and th
 way trough the maze in order to reach the first point, then the second point, and so on,
 and then the character returns to the original point and stops.
 
-  # Behavior descriptions
+# Behavior descriptions
 
 - Seek: the character moves in order to reach a fixed target.
 - Flee: the character moves away from a fixed target.
