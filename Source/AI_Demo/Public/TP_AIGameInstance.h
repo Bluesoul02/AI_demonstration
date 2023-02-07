@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include <Waypoint.h>
 #include "TP_AIGameInstance.generated.h"
 
 /**
@@ -38,6 +39,9 @@ class AI_DEMO_API UTP_AIGameInstance : public UGameInstance
 
 		UPROPERTY(BlueprintGetter = GetWaypointsTwoWays, BlueprintSetter = SetWaypointsTwoWays)
 			int WaypointsTwoWays = 1;
+
+		UPROPERTY(BlueprintGetter = GetOnePoint, BlueprintSetter = SetOnePoint)
+			AWaypoint* OnePoint;
 	public:
 		UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)
 			FString GetCurrentMode() const { return CurrentMode; }
@@ -86,4 +90,10 @@ class AI_DEMO_API UTP_AIGameInstance : public UGameInstance
 
 		UFUNCTION(BlueprintCallable, BlueprintInternalUseOnly)
 			void SetWaypointsTwoWays(const int waypoints_count) { WaypointsTwoWays = waypoints_count; }
+
+		UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)
+			AWaypoint* GetOnePoint() const { return OnePoint; }
+
+		UFUNCTION(BlueprintCallable, BlueprintInternalUseOnly)
+			void SetOnePoint(AWaypoint* waypoint) { OnePoint = waypoint; }
 };
