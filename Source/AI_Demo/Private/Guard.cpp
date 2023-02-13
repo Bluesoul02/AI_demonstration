@@ -19,6 +19,11 @@ void AGuard::BeginPlay()
 	PrimaryActorTick.bCanEverTick = true;
 	bGenerateOverlapEventsDuringLevelStreaming = true;
 	GameInstance = Cast<UTP_AIGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+
+	if (UWorld* World = GetWorld())
+	{
+		UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), AWaypoint::StaticClass(), FName("Pathing"), Graph);
+	}
 }
 
 // Called every frame
@@ -93,6 +98,14 @@ void AGuard::Tick(float DeltaTime)
 			CurrentWaypointOneWay = 0;
 			twoWays = false;
 			Circuit();
+		}
+
+		else if (CurrentMode == FString("One Point")) {
+			CurrentWaypointTwoWays = 0;
+			CurrentWaypointOneWay = 0;
+			CurrentWaypoint = 0;
+			twoWays = false;
+			OnePoint();
 		}
 
 		// obstacle avoidance
@@ -257,4 +270,39 @@ void AGuard::Circuit() {
 	Cast<AWaypoint>(ActorsToFind[CurrentWaypoint])->SetIsTarget(true);
 	target = ActorsToFind[CurrentWaypoint]->GetActorLocation();
 	Seek();
+}
+
+void AGuard::CalculatePath() {
+	TArray<int> visited;
+	int CurrentPoint = CurrentGraphPoint;
+
+	for (AWaypoint* waypoint : Cast<AWaypoint>(Graph[CurrentGraphPoint])->GetAvailableWaypoints()) {
+
+	}
+	
+}
+
+AWaypoint* MinCost(const TArray<AWaypoint*> waypoints, AWaypoint* waypoint) {
+	// Initialize min value
+	int min = INT_MAX, min_index;
+	int dist;
+	for (int i = 0; i < waypoints.Num(); i++) {
+		dist = FVector::Dist(waypoints[i]->GetActorLocation(), waypoint->GetActorLocation());
+		if (dist <= min)
+			min = dist, min_index = i;
+	}
+
+	return waypoints[min_index];
+}
+
+void AGuard::OnePoint() {
+	if (target.Equals(GetActorLocation(), 5.0f)) {
+		
+	}
+
+	target = Graph[CurrentGraphPoint]->GetActorLocation();
+	if (Graph[CurrentGraphPoint] != GameInstance->GetOnePoint())
+		Seek();
+	else
+		Arrival();
 }

@@ -29,6 +29,9 @@ protected:
 	int CurrentWaypoint = 0;
 	int CurrentWaypointOneWay = 0;
 	int CurrentWaypointTwoWays = 0;
+	int CurrentGraphPoint = 0;
+	TArray<AWaypoint*> Path;
+	TArray<AActor*> Graph;
 	// Called when the game starts or when spawned
 	void BeginPlay() override;
 
@@ -51,4 +54,8 @@ public:
 	virtual void TwoWays();
 
 	virtual void Circuit();
+
+	virtual void OnePoint();
+
+	virtual void CalculatePath();
 };

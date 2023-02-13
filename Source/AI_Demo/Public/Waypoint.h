@@ -14,6 +14,8 @@ class AI_DEMO_API AWaypoint : public AActor
 private:
 	UPROPERTY(BlueprintGetter = GetIsTarget, BlueprintSetter = SetIsTarget)
 		bool IsTarget = false;
+	UPROPERTY(BlueprintGetter = GetAvailableWaypoints, BlueprintSetter = SetAvailableWaypoints, EditAnywhere)
+		TArray<AWaypoint*> AvailableWaypoints;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -24,6 +26,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintInternalUseOnly)
 		void SetIsTarget(const bool is_target) { IsTarget = is_target; }
+
+	UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)
+		TArray<AWaypoint*> GetAvailableWaypoints() const { return AvailableWaypoints; }
+
+	UFUNCTION(BlueprintCallable, BlueprintInternalUseOnly)
+		void SetAvailableWaypoints(const TArray<AWaypoint*> waypoints) { AvailableWaypoints = waypoints; }
 
 protected:
 	// Called when the game starts or when spawned
