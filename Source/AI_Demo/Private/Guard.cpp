@@ -101,11 +101,14 @@ void AGuard::Tick(float DeltaTime)
 		}
 
 		else if (CurrentMode == FString("One Point")) {
+			OnePoint();
+		}
+
+		else {
 			CurrentWaypointTwoWays = 0;
 			CurrentWaypointOneWay = 0;
 			CurrentWaypoint = 0;
 			twoWays = false;
-			OnePoint();
 		}
 
 		// obstacle avoidance
@@ -272,33 +275,58 @@ void AGuard::Circuit() {
 	Seek();
 }
 
-void AGuard::CalculatePath() {
-	TArray<int> visited;
-	int CurrentPoint = CurrentGraphPoint;
+//function reconstruct_path(cameFrom, current)
+//	total_path : = { current }
+//	while current in cameFrom.Keys :
+//		current : = cameFrom[current]
+//		total_path.prepend(current)
+//		return total_path
 
-	for (AWaypoint* waypoint : Cast<AWaypoint>(Graph[CurrentGraphPoint])->GetAvailableWaypoints()) {
-
-	}
-	
+// h is the heuristic function
+int AGuard::h(Node n1, Node n2) {
+	if (n1.heuristique < n2.heuristique)
+		return 1;
+	else if (n1.heuristique == n2.heuristique)
+		return 0;
+	else
+		return -1;
 }
 
-AWaypoint* MinCost(const TArray<AWaypoint*> waypoints, AWaypoint* waypoint) {
+int AGuard::CalculatePath(Node start, Node goal) {
+	TArray<Node> ClosedLists = TArray<Node>();
+	TArray<Node> OpenList = TArray<Node>();
+	OpenList.HeapPush(start, NodePredicate());
+	while (!OpenList.IsEmpty()) {
+		Node u;
+		OpenList.HeapPop(u, NodePredicate());
+		if (u.index = goal.index) {
+			//reconstruct_path(u);
+			break;
+		}
+		//pour chaque voisin v de u dans g
+		// le for c'est des AWaypoint le type
+	}
+}
+
+int AGuard::MinCost(const TArray<AWaypoint*> waypoints, AWaypoint* waypoint, const TArray<int> visited) {
 	// Initialize min value
-	int min = INT_MAX, min_index;
+	int min = INT_MAX, min_index = -1;
 	int dist;
 	for (int i = 0; i < waypoints.Num(); i++) {
 		dist = FVector::Dist(waypoints[i]->GetActorLocation(), waypoint->GetActorLocation());
-		if (dist <= min)
+		if (dist <= min && !visited.Contains(i))
 			min = dist, min_index = i;
 	}
 
-	return waypoints[min_index];
+	return min_index;
 }
 
+// Will go on Waypoint 0 when the mode is selected
 void AGuard::OnePoint() {
 	if (target.Equals(GetActorLocation(), 5.0f)) {
 		
 	}
+	Node start = Node(0, 0, 0);
 
 	target = Graph[CurrentGraphPoint]->GetActorLocation();
 	if (Graph[CurrentGraphPoint] != GameInstance->GetOnePoint())

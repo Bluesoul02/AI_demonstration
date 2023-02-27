@@ -57,5 +57,24 @@ public:
 
 	virtual void OnePoint();
 
-	virtual void CalculatePath();
+	struct Node {
+		int index;
+		int cost, heuristique;
+	};
+
+	struct NodePredicate
+	{
+		bool operator()(const Node& A, const Node& B) const
+		{
+			// Inverted compared to std::priority_queue - higher priorities float to the top
+			return A.heuristique > B.heuristique;
+		}
+	};
+
+	int h(Node n1, Node n2);
+
+	virtual int CalculatePath(Node start, Node goal);
+
+	virtual int MinCost(const TArray<AWaypoint*> waypoints, AWaypoint* waypoint, const TArray<int> visited);
+
 };
