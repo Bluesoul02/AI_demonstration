@@ -275,13 +275,16 @@ void AGuard::Circuit() {
 	Seek();
 }
 
-TArray<AGuard::Node> reconstruct_path(TArray<AGuard::Node> cameFrom, AGuard::Node current) {
-	TArray<AGuard::Node> total_path = TArray<AGuard::Node>();
+TArray<int> reconstruct_path(TMap<int, int> cameFrom, int current) {
+	TArray<int> total_path = TArray<int>();
 	total_path.Add(current);
-//	while current in cameFrom.Keys {
-//		current : = cameFrom[current]
-//		total_path.prepend(current)
-//	}
+	TArray<int> keys;
+	cameFrom.GetKeys(keys);
+	while(keys.Contains(current)) {
+		current = cameFrom[current];
+		total_path.Add(current);
+	}
+	Algo::Reverse(total_path);
 	return total_path;
 }
 
@@ -329,13 +332,14 @@ void AGuard::CalculatePath(Node start, Node goal) {
 		Node u;
 		OpenList.HeapPop(u, NodePredicate());
 		if (u.index == goal.index) {
-			//reconstruct_path(u);
+			reconstruct_path(CameFrom, u.index);
 			break;
 		}
 		//pour chaque voisin v de u dans g
 		for (Node v : GetAvailableNodes(Cast<AWaypoint>(Graph[u.index]))) {
 			// not (v existe dans closedLists ou v existe dans openList avec un coût inférieur)
 			if (!(Contains(ClosedLists, v) || Contains(OpenList, v))) {
+				CameFrom.Add(u.index, v.index);
 				v.cost = u.cost + 1;
 				v.heuristique = v.cost + FVector::Dist(Graph[v.index]->GetActorLocation(), Graph[goal.index]->GetActorLocation());
 				OpenList.HeapPush(v, NodePredicate());
