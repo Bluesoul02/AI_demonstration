@@ -71,9 +71,11 @@ public:
 		}
 	};
 
+	TArray<Node> GetAvailableNodes(AWaypoint* wp);
+
 	int h(Node n1, Node n2);
 
-	virtual int CalculatePath(Node start, Node goal);
+	virtual void CalculatePath(Node start, Node goal);
 
 	virtual int MinCost(const TArray<AWaypoint*> waypoints, AWaypoint* waypoint, const TArray<int> visited);
 

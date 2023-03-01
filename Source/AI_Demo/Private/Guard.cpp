@@ -275,12 +275,15 @@ void AGuard::Circuit() {
 	Seek();
 }
 
-//function reconstruct_path(cameFrom, current)
-//	total_path : = { current }
-//	while current in cameFrom.Keys :
+TArray<AGuard::Node> reconstruct_path(TArray<AGuard::Node> cameFrom, AGuard::Node current) {
+	TArray<AGuard::Node> total_path = TArray<AGuard::Node>();
+	total_path.Add(current);
+//	while current in cameFrom.Keys {
 //		current : = cameFrom[current]
 //		total_path.prepend(current)
-//		return total_path
+//	}
+	return total_path;
+}
 
 // h is the heuristic function
 int AGuard::h(Node n1, Node n2) {
@@ -292,20 +295,55 @@ int AGuard::h(Node n1, Node n2) {
 		return -1;
 }
 
-int AGuard::CalculatePath(Node start, Node goal) {
-	TArray<Node> ClosedLists = TArray<Node>();
-	TArray<Node> OpenList = TArray<Node>();
+TArray<AGuard::Node> AGuard::GetAvailableNodes(AWaypoint* wp) {
+	TArray<Node> nodes = TArray<Node>();
+	for (AWaypoint* v : wp->GetAvailableWaypoints()) {
+		Node u;
+		u.index = Graph.IndexOfByKey(v);
+		nodes.Add(u);
+	}
+	return nodes;
+}
+
+//int FindIndex(AWaypoint* wp) {
+//	for (AActor w : AGuard::Graph) {
+//
+//	}
+//}
+
+bool Contains(TArray<AGuard::Node> array, AGuard::Node n) {
+	for (AGuard::Node v : array) {
+		if (v.index == n.index) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void AGuard::CalculatePath(Node start, Node goal) {
+	TArray<Node> ClosedLists = TArray<Node>(); // heap
+	TArray<Node> OpenList = TArray<Node>(); // heap
+	TMap<int, int> CameFrom = TMap<int, int>(); // map of waypoint indexes
 	OpenList.HeapPush(start, NodePredicate());
 	while (!OpenList.IsEmpty()) {
 		Node u;
 		OpenList.HeapPop(u, NodePredicate());
-		if (u.index = goal.index) {
+		if (u.index == goal.index) {
 			//reconstruct_path(u);
 			break;
 		}
 		//pour chaque voisin v de u dans g
-		// le for c'est des AWaypoint le type
+		for (Node v : GetAvailableNodes(Cast<AWaypoint>(Graph[u.index]))) {
+			// not (v existe dans closedLists ou v existe dans openList avec un coût inférieur)
+			if (!(Contains(ClosedLists, v) || Contains(OpenList, v))) {
+				v.cost = u.cost + 1;
+				v.heuristique = v.cost + FVector::Dist(Graph[v.index]->GetActorLocation(), Graph[goal.index]->GetActorLocation());
+				OpenList.HeapPush(v, NodePredicate());
+			}
+			ClosedLists.HeapPush(v, NodePredicate());
+		}
 	}
+	// terminer le programme (avec erreur)
 }
 
 int AGuard::MinCost(const TArray<AWaypoint*> waypoints, AWaypoint* waypoint, const TArray<int> visited) {
@@ -326,7 +364,11 @@ void AGuard::OnePoint() {
 	if (target.Equals(GetActorLocation(), 5.0f)) {
 		
 	}
-	Node start = Node(0, 0, 0);
+	Node start = { 0, 0, 0 };
+	Node goal = { 0, 0, 0 };
+	goal.index = FindIndex(GameInstance->GetOnePoint());
+
+	CalculatePath(start, goal);
 
 	target = Graph[CurrentGraphPoint]->GetActorLocation();
 	if (Graph[CurrentGraphPoint] != GameInstance->GetOnePoint())
