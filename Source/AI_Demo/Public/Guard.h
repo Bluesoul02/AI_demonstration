@@ -30,7 +30,7 @@ protected:
 	int CurrentWaypointOneWay = 0;
 	int CurrentWaypointTwoWays = 0;
 	int CurrentGraphPoint = 0;
-	TArray<AWaypoint*> Path;
+	TArray<int> Path;
 	TArray<AActor*> Graph;
 	// Called when the game starts or when spawned
 	void BeginPlay() override;
@@ -56,6 +56,8 @@ public:
 	virtual void Circuit();
 
 	virtual void OnePoint();
+
+	virtual int FindIndex(AWaypoint* wp);
 
 	struct Node {
 		int index;

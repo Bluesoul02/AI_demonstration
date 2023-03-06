@@ -308,11 +308,16 @@ TArray<AGuard::Node> AGuard::GetAvailableNodes(AWaypoint* wp) {
 	return nodes;
 }
 
-//int FindIndex(AWaypoint* wp) {
-//	for (AActor w : AGuard::Graph) {
-//
-//	}
-//}
+int AGuard::FindIndex(AWaypoint* wp) {
+	int index = 0;
+	for (AActor* w : Graph) {
+		if (wp == Cast<AWaypoint>(w)) {
+			return index;
+		}
+		index++;
+	}
+	return -1;
+}
 
 bool Contains(TArray<AGuard::Node> array, AGuard::Node n) {
 	for (AGuard::Node v : array) {
@@ -332,8 +337,8 @@ void AGuard::CalculatePath(Node start, Node goal) {
 		Node u;
 		OpenList.HeapPop(u, NodePredicate());
 		if (u.index == goal.index) {
-			reconstruct_path(CameFrom, u.index);
-			break;
+			Path = reconstruct_path(CameFrom, u.index);
+			return;
 		}
 		//pour chaque voisin v de u dans g
 		for (Node v : GetAvailableNodes(Cast<AWaypoint>(Graph[u.index]))) {
@@ -365,16 +370,29 @@ int AGuard::MinCost(const TArray<AWaypoint*> waypoints, AWaypoint* waypoint, con
 
 // Will go on Waypoint 0 when the mode is selected
 void AGuard::OnePoint() {
+	target = Graph[CurrentGraphPoint]->GetActorLocation();
+	target.Z = GetActorLocation().Z; //ignore Z axis by setting at the same value as guard
 	if (target.Equals(GetActorLocation(), 5.0f)) {
-		
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Your"));
+		if (Path.IsValidIndex(CurrentGraphPoint)) {
+			if(GEngine)
+				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT(" Message"));
+			target = Graph[Path[CurrentGraphPoint++]]->GetActorLocation();
+		}
 	}
 	Node start = { 0, 0, 0 };
+	if (Path.IsValidIndex(CurrentGraphPoint))
+		start.index = Path[CurrentGraphPoint];
 	Node goal = { 0, 0, 0 };
-	goal.index = FindIndex(GameInstance->GetOnePoint());
+	if (Path.Num() == CurrentGraphPoint) {
+		if (GameInstance->GetOnePoint()) {
+			goal.index = FindIndex(GameInstance->GetOnePoint());
+			CalculatePath(start, goal);
+			CurrentGraphPoint = 0;
+		}
+	}
 
-	CalculatePath(start, goal);
-
-	target = Graph[CurrentGraphPoint]->GetActorLocation();
 	if (Graph[CurrentGraphPoint] != GameInstance->GetOnePoint())
 		Seek();
 	else
