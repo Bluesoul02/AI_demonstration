@@ -4,6 +4,8 @@
 #include <Kismet/KismetMathLibrary.h>
 #include <Waypoint.h>
 
+#define D(x) if(GEngine){GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT(x));}
+
 // Sets default values
 AGuard::AGuard()
 {
@@ -19,11 +21,6 @@ void AGuard::BeginPlay()
 	PrimaryActorTick.bCanEverTick = true;
 	bGenerateOverlapEventsDuringLevelStreaming = true;
 	GameInstance = Cast<UTP_AIGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-
-	if (UWorld* World = GetWorld())
-	{
-		UGameplayStatics::GetAllActorsOfClassWithTag(GetWorld(), AWaypoint::StaticClass(), FName("Pathing"), Graph);
-	}
 }
 
 // Called every frame
@@ -111,16 +108,6 @@ void AGuard::Tick(float DeltaTime)
 			twoWays = false;
 		}
 
-		// obstacle avoidance
-		FVector ahead = GetActorLocation() + Velocity.GetSafeNormal() * 5;
-		//FVector avoidance_ahead = ahead - obstacle_center;
-		//FVector avoidance_force = avoidance_ahead.GetSafeNormal() * AVOID_FORCE;
-
-		//this->SetActorRotation(FRotationMatrix::MakeFromX(Velocity).Rotator());
-		//float TimeToSet = DeltaTime;
-		//FRotator TargetRotation = Velocity.Rotation();
-		//TargetRotation.Pitch = FMath::Clamp(FMath::Lerp(TargetRotation.Pitch, Velocity.Rotation().Pitch, TimeToSet), 0.0f, 280.0f);
-
 		this->SetActorRotation(Velocity.Rotation());
 
 		//FVector new_forward = Velocity.GetSafeNormal();
@@ -129,7 +116,7 @@ void AGuard::Tick(float DeltaTime)
 		//FVector new_side = FVector::CrossProduct(new_forward, approximate_up);
 		//FVector new_up = FVector::CrossProduct(new_forward, new_side);
 		//
-		//this->SetActorRotation(FRotator(new_up.X,new_up.Y, new_up.Z));
+		//this->SetActorRotation(FRotator(new_up.X,new_up.Y, new_up.Z)); // not working
 	}
 }
 
@@ -275,13 +262,16 @@ void AGuard::Circuit() {
 	Seek();
 }
 
-TArray<int> reconstruct_path(TMap<int, int> cameFrom, int current) {
-	TArray<int> total_path = TArray<int>();
+TArray<AWaypoint*> reconstruct_path(TMap<AWaypoint*, AWaypoint*> cameFrom, AWaypoint* current) {
+	TArray<AWaypoint*> total_path = TArray<AWaypoint*>();
 	total_path.Add(current);
-	TArray<int> keys;
-	cameFrom.GetKeys(keys);
-	while(keys.Contains(current)) {
-		current = cameFrom[current];
+	TArray<AWaypoint*> keys;
+	cameFrom.GenerateKeyArray(keys);
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("keys %f"), cameFrom.Num()));
+	while(keys.Contains(current)) { // pb avec camefrom
+		current = cameFrom[current]; // Find()
+		D("While keys");
 		total_path.Add(current);
 	}
 	Algo::Reverse(total_path);
@@ -302,99 +292,105 @@ TArray<AGuard::Node> AGuard::GetAvailableNodes(AWaypoint* wp) {
 	TArray<Node> nodes = TArray<Node>();
 	for (AWaypoint* v : wp->GetAvailableWaypoints()) {
 		Node u;
-		u.index = Graph.IndexOfByKey(v);
+		u.waypoint = v;
 		nodes.Add(u);
 	}
 	return nodes;
 }
 
-int AGuard::FindIndex(AWaypoint* wp) {
-	int index = 0;
-	for (AActor* w : Graph) {
-		if (wp == Cast<AWaypoint>(w)) {
-			return index;
+// return -1 si false et le coût si true
+int Contains(TArray<AGuard::Node> array, AGuard::Node n) {
+	for (AGuard::Node v : array) {
+		if (v.waypoint == n.waypoint) {
+			return v.cost;
 		}
-		index++;
 	}
 	return -1;
 }
 
-bool Contains(TArray<AGuard::Node> array, AGuard::Node n) {
-	for (AGuard::Node v : array) {
-		if (v.index == n.index) {
-			return true;
-		}
-	}
-	return false;
-}
-
-void AGuard::CalculatePath(Node start, Node goal) {
+void AGuard::CalculatePath(AWaypoint* start, AWaypoint* goal) {
+	Node startNode = { start, 0, 0 };
+	Node goalNode = { goal, 0, 0 };
 	TArray<Node> ClosedLists = TArray<Node>(); // heap
 	TArray<Node> OpenList = TArray<Node>(); // heap
-	TMap<int, int> CameFrom = TMap<int, int>(); // map of waypoint indexes
-	OpenList.HeapPush(start, NodePredicate());
+	TMap<AWaypoint*, AWaypoint*> CameFrom = TMap<AWaypoint*, AWaypoint*>(); // map of waypoint indexes
+	OpenList.HeapPush(startNode, NodePredicate());
 	while (!OpenList.IsEmpty()) {
 		Node u;
 		OpenList.HeapPop(u, NodePredicate());
-		if (u.index == goal.index) {
-			Path = reconstruct_path(CameFrom, u.index);
+		if (u.waypoint == goal) {
+			if (GEngine)
+				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("camefrom %f"), CameFrom.Num()));
+			Path = reconstruct_path(CameFrom, u.waypoint);
 			return;
 		}
 		//pour chaque voisin v de u dans g
-		for (Node v : GetAvailableNodes(Cast<AWaypoint>(Graph[u.index]))) {
+		for (Node v : GetAvailableNodes(Cast<AWaypoint>(u.waypoint))) {
 			// not (v existe dans closedLists ou v existe dans openList avec un coût inférieur)
-			if (!(Contains(ClosedLists, v) || Contains(OpenList, v))) {
-				CameFrom.Add(u.index, v.index);
+			if (!(Contains(ClosedLists, v) != -1 || ((Contains(OpenList, v) != -1) && Contains(OpenList, v) < v.cost))) {
+				//D(" not (v existe dans closedLists ou v existe dans openList avec un coût inférieur)");
+				CameFrom.Add(v.waypoint, u.waypoint); // not working
+				if (GEngine)
+					GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("camefrom %f"), CameFrom.Num()));
 				v.cost = u.cost + 1;
-				v.heuristique = v.cost + FVector::Dist(Graph[v.index]->GetActorLocation(), Graph[goal.index]->GetActorLocation());
+				v.heuristique = v.cost + FVector::Dist((v.waypoint)->GetActorLocation(), goal->GetActorLocation());
 				OpenList.HeapPush(v, NodePredicate());
 			}
 			ClosedLists.HeapPush(v, NodePredicate());
 		}
 	}
+	D("erreur calculate");
 	// terminer le programme (avec erreur)
 }
 
-int AGuard::MinCost(const TArray<AWaypoint*> waypoints, AWaypoint* waypoint, const TArray<int> visited) {
-	// Initialize min value
-	int min = INT_MAX, min_index = -1;
-	int dist;
-	for (int i = 0; i < waypoints.Num(); i++) {
-		dist = FVector::Dist(waypoints[i]->GetActorLocation(), waypoint->GetActorLocation());
-		if (dist <= min && !visited.Contains(i))
-			min = dist, min_index = i;
-	}
+//int AGuard::MinCost(const TArray<AWaypoint*> waypoints, AWaypoint* waypoint, const TArray<int> visited) {
+//	// Initialize min value
+//	int min = INT_MAX, min_index = -1;
+//	int dist;
+//	for (int i = 0; i < waypoints.Num(); i++) {
+//		dist = FVector::Dist(waypoints[i]->GetActorLocation(), waypoint->GetActorLocation());
+//		if (dist <= min && !visited.Contains(i))
+//			min = dist, min_index = i;
+//	}
+//
+//	return min_index;
+//}
 
-	return min_index;
-}
-
-// Will go on Waypoint 0 when the mode is selected
 void AGuard::OnePoint() {
-	target = Graph[CurrentGraphPoint]->GetActorLocation();
-	target.Z = GetActorLocation().Z; //ignore Z axis by setting at the same value as guard
-	if (target.Equals(GetActorLocation(), 5.0f)) {
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Your"));
-		if (Path.IsValidIndex(CurrentGraphPoint)) {
-			if(GEngine)
-				GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT(" Message"));
-			target = Graph[Path[CurrentGraphPoint++]]->GetActorLocation();
-		}
+	
+	/*if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, FString::Printf(TEXT("path size %f"), Path.Num()));*/
+
+	if (!hasPath) {
+		target =StartWaypoint->GetActorLocation();
 	}
-	Node start = { 0, 0, 0 };
-	if (Path.IsValidIndex(CurrentGraphPoint))
-		start.index = Path[CurrentGraphPoint];
-	Node goal = { 0, 0, 0 };
-	if (Path.Num() == CurrentGraphPoint) {
-		if (GameInstance->GetOnePoint()) {
-			goal.index = FindIndex(GameInstance->GetOnePoint());
-			CalculatePath(start, goal);
-			CurrentGraphPoint = 0;
+
+	target.Z = GetActorLocation().Z; //ignore Z axis by setting at the same value as guard
+
+	if (target.Equals(GetActorLocation(), 5.0f)) {
+		//if (GEngine)
+		//	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Your"));
+		if (Path.IsValidIndex(CurrentGraphPoint+1)) {
+			D(" Message");
+			target = Path[++CurrentGraphPoint]->GetActorLocation();
 		}
 	}
 
-	if (Graph[CurrentGraphPoint] != GameInstance->GetOnePoint())
-		Seek();
-	else
-		Arrival();
+	if (Path.IsValidIndex(CurrentGraphPoint) && !hasPath)
+		StartWaypoint = Path[CurrentGraphPoint];
+
+	if (!hasPath) {
+		if (GameInstance->GetOnePoint()) {
+			D(" B4 calculate");
+			CalculatePath(StartWaypoint, GameInstance->GetOnePoint());
+			hasPath = true;
+		}
+	}
+	if (Path.IsValidIndex(CurrentGraphPoint)) {
+		if (Path[CurrentGraphPoint] != GameInstance->GetOnePoint())
+			Seek();
+		else {
+			Arrival();
+		}
+	}
 }

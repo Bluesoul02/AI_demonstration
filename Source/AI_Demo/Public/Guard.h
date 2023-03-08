@@ -30,8 +30,10 @@ protected:
 	int CurrentWaypointOneWay = 0;
 	int CurrentWaypointTwoWays = 0;
 	int CurrentGraphPoint = 0;
-	TArray<int> Path;
-	TArray<AActor*> Graph;
+	bool hasPath = false;
+	UPROPERTY(EditAnywhere)
+		AWaypoint* StartWaypoint = nullptr;
+	TArray<AWaypoint*> Path;
 	// Called when the game starts or when spawned
 	void BeginPlay() override;
 
@@ -57,10 +59,8 @@ public:
 
 	virtual void OnePoint();
 
-	virtual int FindIndex(AWaypoint* wp);
-
 	struct Node {
-		int index;
+		AWaypoint* waypoint;
 		int cost, heuristique;
 	};
 
@@ -77,8 +77,8 @@ public:
 
 	int h(Node n1, Node n2);
 
-	virtual void CalculatePath(Node start, Node goal);
+	virtual void CalculatePath(AWaypoint* start, AWaypoint* goal);
 
-	virtual int MinCost(const TArray<AWaypoint*> waypoints, AWaypoint* waypoint, const TArray<int> visited);
+	//virtual int MinCost(const TArray<AWaypoint*> waypoints, AWaypoint* waypoint, const TArray<int> visited);
 
 };
