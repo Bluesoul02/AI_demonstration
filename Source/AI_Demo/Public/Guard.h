@@ -59,26 +59,28 @@ public:
 
 	virtual void OnePoint();
 
-	struct Node {
+	struct FNode {
 		AWaypoint* waypoint;
-		int cost, heuristique;
-	};
+		int G, H, F;
+		struct FNode* Parent;
 
-	struct NodePredicate
-	{
-		bool operator()(const Node& A, const Node& B) const
-		{
-			// Inverted compared to std::priority_queue - higher priorities float to the top
-			return A.heuristique > B.heuristique;
+		bool operator==(const FNode& other) const {
+			return (waypoint == other.waypoint);
 		}
 	};
 
-	TArray<Node> GetAvailableNodes(AWaypoint* wp);
+	//struct NodePredicate
+	//{
+	//	bool operator()(const Node& A, const Node& B) const
+	//	{
+	//		// Inverted compared to std::priority_queue - higher priorities float to the top
+	//		return A.heuristique > B.heuristique;
+	//	}
+	//};
 
-	int h(Node n1, Node n2);
+	TArray<FNode*> GetAvailableNodes(AWaypoint* wp);
 
-	virtual void CalculatePath(AWaypoint* start, AWaypoint* goal);
+	virtual void CalculatePath(AWaypoint* Start, AWaypoint* Goal);
 
-	//virtual int MinCost(const TArray<AWaypoint*> waypoints, AWaypoint* waypoint, const TArray<int> visited);
-
+	//void reconstruct_path(FNode current);
 };
