@@ -38,8 +38,6 @@ and then the character returns to the original point and stops.
 - You should not be able to select the same waypoint multiple times (but if you manage to it could end up crashing).
 - For circuit when the pawn reach the last selected waypoint, the pawn will follow the same path backward.
 
-The link between the waypoints is currently only visible in editor mode.
-
 Left Click is used to select the waypoints for all the above.
 
 ### Known bugs:
