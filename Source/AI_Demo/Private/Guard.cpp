@@ -99,6 +99,16 @@ void AGuard::Tick(float DeltaTime)
 
 		else if (CurrentMode == FString("One Point")) {
 			OnePoint();
+			twoWays = false;
+		}
+
+		else if (CurrentMode == FString("Several Points")) {
+			SeveralPoints();
+			twoWays = false;
+		}
+
+		else if (CurrentMode == FString("Circuit 2")) {
+			CircuitPath();
 		}
 
 		else {
@@ -309,7 +319,7 @@ void AGuard::CalculatePath(AWaypoint* Start, AWaypoint* Goal) {
 
 		// If the current FNode is the end FNode, return the path
 		if (u->waypoint == Goal) {
-			Path.Add(Goal);
+			Path.Insert(Goal, 0);
 			FNode* ParentNode = u->Parent;
 			while (ParentNode && ParentNode->waypoint != Start) {
 				Path.Insert(ParentNode->waypoint, 0);
@@ -387,6 +397,95 @@ void AGuard::OnePoint() {
 				Path.Empty();
 				StartWaypoint = GameInstance->GetOnePoint();
 				GameInstance->SetOnePoint(nullptr);
+			}
+		}
+	}
+}
+
+void AGuard::SeveralPoints() {
+
+	target.Z = GetActorLocation().Z; //ignore Z axis by setting at the same value as guard
+
+	if (target.Equals(GetActorLocation(), 5.0f)) {
+		if (Path.IsValidIndex(CurrentGraphPoint + 1)) {
+			target = Path[++CurrentGraphPoint]->GetActorLocation();
+		}
+	}
+
+	if (!hasPath) {
+		if (GameInstance->GetGoals().Num() >= 2) {
+			if (GameInstance->GetPlay()) {
+				for (int i = GameInstance->GetGoals().Num() - 1; i > 0; i--) {
+					CalculatePath(GameInstance->GetGoals()[i - 1], GameInstance->GetGoals()[i]);
+				}
+				hasPath = true;
+				target = Path[CurrentGraphPoint]->GetActorLocation();
+			}
+		}
+	}
+
+	if (Path.IsValidIndex(CurrentGraphPoint) && hasPath) {
+		if (CurrentGraphPoint != Path.Num() - 1)
+			Seek();
+		else {
+			Arrival();
+			if (target.Equals(GetActorLocation(), 5.0f)) {
+				GameInstance->SetPlay(false);
+				hasPath = false;
+				CurrentGraphPoint = 0;
+				Path.Empty();
+			}
+		}
+	}
+}
+
+void AGuard::CircuitPath() {
+
+	target.Z = GetActorLocation().Z; //ignore Z axis by setting at the same value as guard
+
+	if (target.Equals(GetActorLocation(), 5.0f)) {
+		if (!twoWays) {
+			if (Path.IsValidIndex(CurrentGraphPoint + 1)) {
+				target = Path[++CurrentGraphPoint]->GetActorLocation();
+			}
+		}
+		else
+			if (Path.IsValidIndex(CurrentGraphPoint - 1)) {
+				target = Path[--CurrentGraphPoint]->GetActorLocation();
+			}
+	}
+
+	if (!hasPath) {
+		if (GameInstance->GetGoals().Num() >= 2) {
+			if (GameInstance->GetPlay()) {
+				for (int i = GameInstance->GetGoals().Num() - 1; i > 0; i--) {
+					CalculatePath(GameInstance->GetGoals()[i - 1], GameInstance->GetGoals()[i]);
+				}
+				hasPath = true;
+				target = Path[CurrentGraphPoint]->GetActorLocation();
+			}
+		}
+	}
+
+	if (Path.IsValidIndex(CurrentGraphPoint) && hasPath) {
+		if ((CurrentGraphPoint != Path.Num() - 1 && !twoWays) || (CurrentGraphPoint != 0 && twoWays)) {
+			Seek();
+		}
+		else {
+			if (!twoWays) {
+				Seek();
+				if (target.Equals(GetActorLocation(), 5.0f))
+					twoWays = true;
+			}
+			else {
+				Arrival();
+				if (target.Equals(GetActorLocation(), 5.0f)) {
+					twoWays = false;
+					GameInstance->SetPlay(false);
+					hasPath = false;
+					CurrentGraphPoint = 0;
+					Path.Empty();
+				}
 			}
 		}
 	}

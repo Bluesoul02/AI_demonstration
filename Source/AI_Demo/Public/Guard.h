@@ -59,6 +59,10 @@ public:
 
 	virtual void OnePoint();
 
+	virtual void SeveralPoints();
+
+	virtual void CircuitPath();
+
 	struct FNode {
 		AWaypoint* waypoint;
 		int G, H, F;
@@ -69,18 +73,7 @@ public:
 		}
 	};
 
-	//struct NodePredicate
-	//{
-	//	bool operator()(const Node& A, const Node& B) const
-	//	{
-	//		// Inverted compared to std::priority_queue - higher priorities float to the top
-	//		return A.heuristique > B.heuristique;
-	//	}
-	//};
-
 	TArray<FNode*> GetAvailableNodes(AWaypoint* wp);
 
 	virtual void CalculatePath(AWaypoint* Start, AWaypoint* Goal);
-
-	//void reconstruct_path(FNode current);
 };

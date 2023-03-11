@@ -42,6 +42,11 @@ class AI_DEMO_API UTP_AIGameInstance : public UGameInstance
 
 		UPROPERTY(BlueprintGetter = GetOnePoint, BlueprintSetter = SetOnePoint)
 			AWaypoint* OnePoint;
+
+		UPROPERTY(BlueprintGetter = GetGoals, BlueprintSetter = SetGoals)
+			TArray<AWaypoint*> Goals;
+		UPROPERTY(BlueprintGetter = GetPlay, BlueprintSetter = SetPlay)
+			bool Play = false;
 	public:
 		UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)
 			FString GetCurrentMode() const { return CurrentMode; }
@@ -96,4 +101,16 @@ class AI_DEMO_API UTP_AIGameInstance : public UGameInstance
 
 		UFUNCTION(BlueprintCallable, BlueprintInternalUseOnly)
 			void SetOnePoint(AWaypoint* waypoint) { OnePoint = waypoint; }
+
+		UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)
+			TArray<AWaypoint*> GetGoals() const { return Goals; }
+
+		UFUNCTION(BlueprintCallable, BlueprintInternalUseOnly)
+			void SetGoals(TArray<AWaypoint*> list) { Goals = list; }
+
+		UFUNCTION(BlueprintPure, BlueprintInternalUseOnly)
+			bool GetPlay() const { return Play; }
+
+		UFUNCTION(BlueprintCallable, BlueprintInternalUseOnly)
+			void SetPlay(bool startPath) { Play = startPath; }
 };
