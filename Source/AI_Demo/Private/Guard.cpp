@@ -311,7 +311,7 @@ void AGuard::CalculatePath(AWaypoint* Start, AWaypoint* Goal) {
 		if (u->waypoint == Goal) {
 			Path.Add(Goal);
 			FNode* ParentNode = u->Parent;
-			while (ParentNode && ParentNode->waypoint != Start) { // crash ?
+			while (ParentNode && ParentNode->waypoint != Start) {
 				Path.Insert(ParentNode->waypoint, 0);
 				u = ParentNode;
 				ParentNode = ParentNode->Parent;
@@ -356,7 +356,7 @@ void AGuard::CalculatePath(AWaypoint* Start, AWaypoint* Goal) {
 void AGuard::OnePoint() {
 
 	if (!hasPath) {
-		target = StartWaypoint->GetActorLocation(); // crash after empty
+		target = StartWaypoint->GetActorLocation();
 	}
 
 	target.Z = GetActorLocation().Z; //ignore Z axis by setting at the same value as guard
@@ -369,11 +369,14 @@ void AGuard::OnePoint() {
 
 	if (!hasPath) {
 		if (GameInstance->GetOnePoint()) {
-			CalculatePath(StartWaypoint, GameInstance->GetOnePoint());
+			if (GameInstance->GetOnePoint() == StartWaypoint) {
+				Path.Add(StartWaypoint);
+			} else
+				CalculatePath(StartWaypoint, GameInstance->GetOnePoint());
 			hasPath = true;
 		}
 	}
-	if (Path.IsValidIndex(CurrentGraphPoint)) { // crash?
+	if (Path.IsValidIndex(CurrentGraphPoint)) {
 		if (Path[CurrentGraphPoint] != GameInstance->GetOnePoint())
 			Seek();
 		else {
