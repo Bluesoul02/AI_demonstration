@@ -31,6 +31,9 @@ and then the character returns to the original point and stops.
 
 Left Click is used to select the waypoints for all the above.
 
+### Known bugs:
+- Choosing the two farthest point will result in a crash
+
 # Behavior descriptions
 
 - Seek: the character moves in order to reach a fixed target.
