@@ -2,7 +2,7 @@
 
 Demonstration of steering behavior implementation made with Unreal Engine 5.0.3
 
-# Instructions
+# Instructions (most are general but some may only apply to Steering behaviors)
 
 - Remember to regenerate visual studio files on clone
 - The sliders in the bottom left affects their respective stats which can also be changed by clicking on the number and editing the text (only integers are accepted)
@@ -17,7 +17,7 @@ Demonstration of steering behavior implementation made with Unreal Engine 5.0.3
 
 You can change between basic behaviors and path finding by clicking on the bottom left button named either "Path Finding" or "Steering".
 
-# Path finding Description
+# Path finding Description & Instructions
 
 Pathing is on the right side of the map and has its own waypoints which can't be moved during gameplay.
 
@@ -29,9 +29,23 @@ finds its way to reach the first point, then the second point, and so on, and th
 way trough the maze in order to reach the first point, then the second point, and so on,
 and then the character returns to the original point and stops.
 
+### For One Point :
+- The Starting point will the southest point on the first time you call it.
+- The Starting point will be set to be last point you selected after the first call.
+
+### For Several points and Circuit : 
+- You must select at least two points the first being the starting point of the path.
+- You should not be able to select the same waypoint multiple times (but if you manage to it could end up crashing).
+- For circuit when the pawn reach the last selected waypoint, the pawn will follow the same path backward.
+
+The link between the waypoints is currently only visible in editor mode.
+
 Left Click is used to select the waypoints for all the above.
 
-# Behavior descriptions
+### Known bugs:
+- Choosing the two farthest point will result in a crash.
+
+# Steering Behaviors descriptions
 
 - Seek: the character moves in order to reach a fixed target.
 - Flee: the character moves away from a fixed target.
